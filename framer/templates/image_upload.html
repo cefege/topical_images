@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload</title>
+    {% load static %}
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<style>
+    body {
+        background-color: #ffeec8;
+    }
+</style>
+
+<body>
+    <div class="container">
+        <h1 class="mt-4">Multiple Image Uploads and Output</h1>
+        <form id="imageUploadForm" action="" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_title">Image Title</label>
+                <input type="text" id="id_title" name="title" class="form-control" value="{{ title }}">
+            </div>
+            <div class="form-group">
+                <label for="id_input_string">Enter your list text here</label>
+                <textarea id="id_input_string" name="input_string" class="form-control">{{ input_string }}</textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_frame_image">Frame Image</label>
+                        {{ form.frame_image }}
+                        <input type="hidden" id="frame_image_url" name="frame_image_url" value="{{ frame_url }}">
+                        
+                        <img id="frameImagePreview" style="display: block; max-width: 200px;" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="id_pool_image">Background Image</label>
+                        {{ form.pool_image }}
+                        <input type="hidden" id="pexels_image_url" name="pexels_image_url">
+                        <img id="poolImagePreview" style="display: none; max-width: 200px;" />
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success" onclick="resetFrameImageUrl()">Generate Final Image</button>
+        </form>
+
+        <div class="row mt-3">
+            <div class="col-md-6 offset-md-6 text-right">
+                <button class="btn btn-secondary" onclick="hide_show()">More Options</button>
+            </div>
+        </div>
+
+        <div id="search" class="mt-4" style="display: none;">
+            <h2>Search Background Images from Pexels</h2>
+            <form id="searchForm" action="" method="post" onsubmit="setFrameImagePreview()">
+                {% csrf_token %}
+                <div class="form-group">
+                    <input type="text" name="search_query" class="form-control" placeholder="Search for images...">
+                </div>
+                <input type="hidden" id="title" name="title" value="{{ title }}">
+                <input type="hidden" id="input_string" name="input_string" value="{{ input_string }}">
+                <button type="submit" name="search" class="btn btn-primary">Search</button>
+                <input type="hidden" id="frame_image_url" name="frame_image_url" value="{{ frame_url }}">
+                
+            </form>
+        </div>
+
+        {% if photos %}
+            <div id="search2" class="mt-4" style="display: block;">
+                <h2>Search Background Images from Pexels</h2>
+                <form id="searchForm" action="" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input type="text" name="search_query" class="form-control" placeholder="Search for images...">
+                    </div>
+                    <input type="hidden" id="title" name="title" value="{{ title }}">
+                    <input type="hidden" id="input_string" name="input_string" value="{{ input_string }}">
+                    <button type="submit" name="search" class="btn btn-primary">Search</button>
+                    <input type="hidden" id="frame_image_url" name="frame_image_url" value="{{ frame_url }}">
+                    
+                </form>
+            </div>
+            <h2 class="mt-4">Search Results</h2>
+            <div class="d-flex flex-wrap">
+                {% for photo in photos %}
+                    <img src="{{ photo.src.medium }}" alt="{{ photo.photographer }}" class="img-thumbnail m-2" style="max-height: 200px; max-width: 300px; cursor: pointer;" onclick="selectPexelsImage('{{ photo.src.original }}', this)">
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if output_image_data %}
+            <h2 class="mt-4">Resulting Image</h2>
+            <img src="data:image/png;base64,{{ output_image_data }}" alt="Resulting Image" class="img-fluid">
+            <br>
+            <a id="downloadButton" href="data:image/png;base64,{{ output_image_data }}" download="{{ current_output_path }}">
+                <button type="button" class="btn btn-success mt-2">Download Image</button>
+            </a>
+        {% endif %}
+    </div>
+
+    <script>
+        var search_div = document.getElementById('search');
+        var display = 0;
+        frameImagePreview.src = document.getElementById('frame_image_url').value
+        if (document.getElementById('frame_image_url').value == '/static/temp_frame_image.png') {
+            frameImagePreview.style.display = 'block';
+        }
+        else {
+            frameImagePreview.style.display = 'none';
+        }
+        
+
+        var search_div = document.getElementById('search');
+        var search_div2 = document.getElementById('search2');
+        var display = 1;
+
+        function hide_show() {
+            if (display == 1) {
+                search_div.style.display = 'block';
+                display = 0;
+            } else {
+                search_div.style.display = 'none';
+                display = 1;
+            }
+            if (search_div2.style.display == 'block')  {
+                search_div.style.display = 'none';
+            }
+        }
+
+        function resetFrameImageUrl() {
+            document.getElementById('frame_image_url').value = "";
+            frameImagePreview.style.display = 'none';
+            
+        }
+
+        function setFrameImageUrl() {
+            frameImagePreview.style.display = 'block';
+        }
+
+        function setFrameImagePreview() {
+            var frameImageUrl = document.getElementById('frame_image_url').value;
+            
+            var frameImagePreview = document.getElementById('frameImagePreview');
+            frameImagePreview.style.display = 'block';
+            frameImagePreview.src = frameImageUrl;
+            
+
+            
+            
+            document.getElementById('title').value = document.getElementById('id_title').value;
+            document.getElementById('input_string').value = document.getElementById('id_input_string').value;
+            
+        }
+
+        document.querySelector('input[name="frame_image"]').addEventListener('change', function(event) {
+            const [file] = event.target.files;
+            if (file) {
+                const preview = document.getElementById('frameImagePreview');
+                if (preview) {
+                    preview.style.display = 'block';
+                    preview.src = URL.createObjectURL(file);
+                }
+            }
+        });
+
+        document.querySelector('input[name="pool_image"]').addEventListener('change', function(event) {
+            const [file] = event.target.files;
+            if (file) {
+                const preview = document.getElementById('poolImagePreview');
+                if (preview) {
+                    preview.style.display = 'block';
+                    preview.src = URL.createObjectURL(file);
+                }
+            }
+        });
+
+        function selectPexelsImage(imageUrl, imgElement) {
+            if (document.getElementById('id_input_string').value == "") {
+                
+            }
+            console.log(imageUrl);
+            document.getElementById('pexels_image_url').value = imageUrl;
+
+            // Visually indicate the selected image
+            const selectedClass = 'selected-image';
+            document.querySelectorAll(`.${selectedClass}`).forEach(img => {
+                img.classList.remove(selectedClass);
+                img.style.border = '';
+            });
+
+            imgElement.classList.add(selectedClass);
+            imgElement.style.border = '2px solid blue';
+
+            // Show selected image as preview
+            const preview = document.getElementById('poolImagePreview');
+            if (preview) {
+                preview.style.display = 'block';
+                preview.src = imageUrl;
+            }
+        }
+    </script>
+</body>
+</html>
