@@ -17,7 +17,7 @@ SECRET_KEY = "django-insecure-g@pjpis(ozlehoc9tmzwmm(pu!*gpw4gv^!56f(gq#r$lnu8o^
 DEBUG = True
 
 ALLOWED_HOSTS = ['*', 'localhost', 'owkw40c.5.78.88.167.sslip.io']
-
+CSRF_TRUSTED_ORIGINS = ['https://topical-images-testing.desync-game.com']
 
 # Application definition
 
