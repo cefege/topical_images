@@ -1,0 +1,6 @@
+Django==5.0.6
+numpy
+opencv-python
+Pillow
+requests
+opencv-python-headless
